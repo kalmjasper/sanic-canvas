@@ -13,7 +13,7 @@ use nannou::prelude::*;
 use nannou::wgpu::{Backends, DeviceDescriptor, Limits};
 
 pub struct Model {
-    pub points: Vec<Vector3>,
+    pub points: Vec<Vec3>,
     pub noise: nannou::noise::OpenSimplex,
 }
 
