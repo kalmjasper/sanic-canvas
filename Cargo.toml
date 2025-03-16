@@ -1,3 +1,8 @@
+[package]
+name = "sanic-canvas"
+version = "0.1.0"
+edition = "2021"
+
 [workspace]
 members = ["nannou-app", "leptos-app"]
 resolver = "2"
@@ -6,3 +11,9 @@ resolver = "2"
 # This makes the compiled code faster and smaller, but it makes compiling slower,
 # so it's only enabled in release mode.
 lto = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2.83"

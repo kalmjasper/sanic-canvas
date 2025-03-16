@@ -4896,6 +4896,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "sanic-canvas"
+version = "0.1.0"
+dependencies = [
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "scoped_threadpool"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
