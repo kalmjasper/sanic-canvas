@@ -1,0 +1,26 @@
+[package]
+name = "nannou-app"
+version = "0.0.1"
+edition = "2021"
+
+[[bin]]
+name = "nannou_web_compat"
+path = "src/main.rs"
+
+[lib]
+name = "nannou_web_test"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2.83"
+wasm-bindgen-futures = "0.4.32"
+async-std = { version = "1.10.0", features = ["unstable"] }
+nannou = { git = "https://github.com/nannou-org/nannou", branch = "bevy-refactor" }
+
+[dependencies.web-sys]
+version = "0.3.22"
+features = ["console"]
+
+[target."cfg(debug_assertions)".dependencies]
+console_error_panic_hook = "0.1.5"
