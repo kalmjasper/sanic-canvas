@@ -1,7 +1,0 @@
-[package]
-name = "leptos-app"
-version = "0.0.1"
-edition = "2021"
-
-[dependencies]
-leptos = { version = "0.7.7", features = ["csr"] }

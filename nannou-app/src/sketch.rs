@@ -70,18 +70,27 @@ pub async fn run_app(_model: Model) {
         create_window(app);
         Model {} // Simplified model initialization
     })
+    // .view(view)
     .update(update)
     .run();
 }
 
 fn create_window(app: &App) {
-    let device_desc = DeviceDescriptor {
-        required_limits: Limits {
-            max_texture_dimension_2d: 8192,
-            ..Limits::downlevel_webgl2_defaults()
-        },
-        ..Default::default()
-    };
+    // let device_desc = DeviceDescriptor {
+    //     required_limits: Limits {
+    //         max_texture_dimension_2d: 8192,
+    //         ..Limits::downlevel_webgl2_defaults()
+    //     },
+    //     ..Default::default()
+    // };
 
-    app.new_window().title("nannou web test").view(view).build();
+    app.new_window()
+        .size_pixels(1024, 768)
+        .resizable(false)
+        .title("asfaa")
+        .primary()
+        .view(view)
+        .build();
+
+    // app.new_window().title("nannou web test").view(view).build();
 }
