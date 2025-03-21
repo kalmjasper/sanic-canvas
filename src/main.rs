@@ -1,19 +1,34 @@
 // native app entry_point
 
-
 // use leptos::prelude::{Effect, Get, IntoView, NodeRef, NodeRefAttribute};
 use leptos::task::spawn_local;
 use leptos::*;
 use leptos::{html::Canvas, prelude::*};
-use leptos_use::use_resize_observer;
+use leptos_use::{use_mutation_observer_with_options, UseMutationObserverOptions};
 use sketch::{run_app, Model};
+use web_sys::console;
 
 mod sketch;
-
 
 #[component]
 fn App() -> impl IntoView {
     let canvas_ref: NodeRef<Canvas> = NodeRef::new();
+
+    let target_style = "width: 100%; height: 100%;";
+
+    use_mutation_observer_with_options(
+        canvas_ref,
+        move |_entries, _observer| {
+            if let Some(canvas) = canvas_ref.get() {
+                if let Some(attr) = canvas.get_attribute("style") {
+                    if attr != target_style {
+                        canvas.set_attribute("style", &target_style).unwrap();
+                    }
+                }
+            }
+        },
+        UseMutationObserverOptions::default().attributes(true),
+    );
 
     Effect::new(move |_| {
         if let Some(canvas) = canvas_ref.get() {
@@ -24,11 +39,6 @@ fn App() -> impl IntoView {
                 run_app(model).await;
             });
         }
-    });
-
-    use_resize_observer(canvas_ref, move |entries, _observer| {
-        let rect = entries[0].content_rect();
-        println!("rect: {:?}", rect);
     });
 
     view! {
@@ -55,17 +65,3 @@ fn App() -> impl IntoView {
 fn main() {
     leptos::mount::mount_to_body(|| view! { <App /> });
 }
-
-// fn main() {
-//     let mut p = vec![];
-//     for x in -20..20 {
-//         for y in -20..20 {
-//             p.push(vec3(x as f32, y as f32, 0.0));
-//         }
-//     }
-//     let model = Model {};
-//     block_on(async {
-//         run_app(model).await;
-//     });
-// }
-//
