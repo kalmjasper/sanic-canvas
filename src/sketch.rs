@@ -8,65 +8,92 @@
 
 use std::cell::RefCell;
 
+use nannou::noise::NoiseFn;
 use nannou::prelude::*;
+use nannou::rand::*;
 
-pub struct Model {
-    // We can remove the previous fields as they're no longer needed
+struct Particle {
+    pos: Vector2,
+    vel: Vector2,
 }
 
-fn update(_app: &App, _model: &mut Model) {
-    // No updates needed for this visualization
+impl Particle {
+    fn new(x: f32, y: f32) -> Particle {
+        Particle {
+            pos: vec2(x, y),
+            vel: vec2(0., 0.),
+        }
+    }
+
+    fn update(&mut self, dir: Vector2) {
+        self.pos += self.vel;
+        self.vel += dir;
+        self.vel *= 0.8;
+    }
 }
 
-fn view(app: &App, _model: &Model) {
-    // Begin drawing
+struct Model {
+    particles: Vec<Particle>,
+}
+
+fn model(app: &App) -> Model {
+    let r = 2.0 * app.window_rect().right() as f32;
+    let l = 2.0 * app.window_rect().left() as f32;
+
+    let w = l - r;
+    let t = 2.0 * app.window_rect().top() as f32;
+    let b = 2.0 * app.window_rect().bottom() as f32;
+
+    let h = t - b;
+
+    let mut p = vec![];
+    for _i in 0..2000 {
+        let x = random_f32() * w + r;
+        let y = random_f32() * h + b;
+        p.push(Particle::new(x, y));
+    }
+
+    Model { particles: p }
+}
+
+fn update(app: &App, model: &mut Model) {
+    let noise = nannou::noise::Perlin::new();
+    let t = app.elapsed_frames() as f64 / 10.;
+    for i in 0..model.particles.len() {
+        let p = &mut model.particles[i];
+        let x = noise.get([
+            p.pos.x as f64 / 128.,
+            p.pos.y as f64 / 137.,
+            t + i as f64 / 1000.,
+        ]);
+        let y = noise.get([
+            -p.pos.y as f64 / 128.,
+            p.pos.x as f64 / 137.,
+            t + i as f64 / 1000.,
+        ]);
+
+        let a = vec2(x as f32, y as f32);
+        p.update(a);
+    }
+}
+
+fn view(app: &App, model: &Model) {
     let draw = app.draw();
-    draw.background().color(BLACK);
-
-    let win = app.window_rect();
-    let t = app.time();
-
-    // Decide on a number of points and a weight.
-    let n_points = 10;
-    let weight = 8.0;
-    let hz = ((app.mouse().x + win.right()) / win.w()).powi(4) * 1000.0;
-    let points_colored = (0..n_points)
-        // A sine wave mapped to the range of the window.
-        .map(|i| {
-            let x = map_range(i, 0, n_points - 1, win.left(), win.right());
-            let fract = i as f32 / n_points as f32;
-            let amp = (t + fract * hz * TAU).sin();
-            let y = map_range(amp, -1.0, 1.0, win.bottom() * 0.75, win.top() * 0.75);
-            pt2(x, y)
-        })
-        .enumerate()
-        // Colour each vertex uniquely based on its index.
-        .map(|(i, p)| {
-            let fract = i as f32 / n_points as f32;
-            let r = (t + fract) % 1.0;
-            let g = (t + 1.0 - fract) % 1.0;
-            let b = (t + 0.5 + fract) % 1.0;
-            let rgba = Color::srgba(r, g, b, 1.0);
-            (p, rgba)
-        });
-
-    // Draw the polyline as a stroked path.
-    draw.polyline()
-        .weight(weight)
-        .join_round()
-        .points_colored(points_colored);
+    let t = (app.elapsed_frames() as f32) * 0.02;
+    let w = (t * 0.832).cos();
+    for p in &model.particles {
+        draw.ellipse()
+            .xy(p.pos)
+            .w_h(2.0, 2.0)
+            .color(Color::hsla(0.1, 1. + w, 5., 0.01));
+    }
+    // draw.to_frame(app, &frame).unwrap();
 }
 
-pub async fn run_app(_model: Model) {
-    thread_local!(static MODEL: RefCell<Option<Model>> = Default::default());
-
-    let model = Model {}; // Simplified model with no fields
-
-    MODEL.with(|m| m.borrow_mut().replace(model));
-
+pub async fn run_app() {
     nannou::app(|app| {
         create_window(app);
-        Model {} // Simplified model initialization
+        model(app)
     })
     .update(update)
     .run();

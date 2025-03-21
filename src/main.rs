@@ -5,7 +5,7 @@ use leptos::task::spawn_local;
 use leptos::*;
 use leptos::{html::Canvas, prelude::*};
 use leptos_use::{use_mutation_observer_with_options, UseMutationObserverOptions};
-use sketch::{run_app, Model};
+use sketch::run_app;
 use web_sys::console;
 
 mod sketch;
@@ -35,8 +35,7 @@ fn App() -> impl IntoView {
             canvas.set_id("nannou");
 
             spawn_local(async move {
-                let model = Model {};
-                run_app(model).await;
+                run_app().await;
             });
         }
     });
