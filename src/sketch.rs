@@ -37,17 +37,17 @@ struct Model {
 }
 
 fn model(app: &App) -> Model {
-    let r = 2.0 * app.window_rect().right() as f32;
-    let l = 2.0 * app.window_rect().left() as f32;
+    let r = app.window_rect().right() as f32;
+    let l = app.window_rect().left() as f32;
 
     let w = l - r;
-    let t = 2.0 * app.window_rect().top() as f32;
-    let b = 2.0 * app.window_rect().bottom() as f32;
+    let t = app.window_rect().top() as f32;
+    let b = app.window_rect().bottom() as f32;
 
     let h = t - b;
 
     let mut p = vec![];
-    for _i in 0..2000 {
+    for _i in 0..200 {
         let x = random_f32() * w + r;
         let y = random_f32() * h + b;
         p.push(Particle::new(x, y));
