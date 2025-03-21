@@ -13,6 +13,7 @@ wasm-bindgen-futures = "0.4.32"
 async-std = { version = "1.10.0", features = ["unstable"] }
 nannou = { git = "https://github.com/kalmjasper/nannou", branch = "bevy-refactor" }
 leptos = { version = "0.7.7", features = ["csr"] }
+leptos-use = "0.15.7"
 
 [dependencies.web-sys]
 version = "0.3.22"

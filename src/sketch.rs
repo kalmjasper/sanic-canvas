@@ -8,9 +8,7 @@
 
 use std::cell::RefCell;
 
-use nannou::noise::NoiseFn;
 use nannou::prelude::*;
-use nannou::wgpu::{Backends, DeviceDescriptor, Limits};
 
 pub struct Model {
     // We can remove the previous fields as they're no longer needed

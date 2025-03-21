@@ -1,46 +1,15 @@
 // native app entry_point
 
-use async_std::task::block_on;
 
 // use leptos::prelude::{Effect, Get, IntoView, NodeRef, NodeRefAttribute};
 use leptos::task::spawn_local;
-use leptos::wasm_bindgen::JsCast;
 use leptos::*;
 use leptos::{html::Canvas, prelude::*};
-use nannou::glam::vec3;
+use leptos_use::use_resize_observer;
 use sketch::{run_app, Model};
 
 mod sketch;
 
-use leptos::html::{Div, Html};
-use web_sys::HtmlCanvasElement;
-
-// #[component]
-// pub fn NannouCanvas() -> impl IntoView {
-//     let div_ref: NodeRef<Div> = NodeRef::new();
-//
-//     Effect::new(move |_| {
-//         if let Some(div) = div_ref.get() {
-//             // Initialize Nannou app when the div is mounted
-//             spawn_local(async move {
-//                 let model = Model {};
-//                 run_app(model).await;
-//             });
-//         }
-//     });
-//
-//     view! {
-//         <div
-//             node_ref=div_ref
-//             style="width: 100%; height: 100vh; position: relative;"
-//         >
-//             <canvas
-//                 id="nannou"
-//                 style="width: 100%; height: 100%;"
-//             />
-//         </div>
-//     }
-// }
 
 #[component]
 fn App() -> impl IntoView {
@@ -50,47 +19,37 @@ fn App() -> impl IntoView {
         if let Some(canvas) = canvas_ref.get() {
             canvas.set_id("nannou");
 
-            canvas.set_height(1000);
-            canvas.set_width(1000);
-
-            // Set important CSS directly on the element
-            // canvas
-            //     .style()
-            //     .set_property("width", "100% !important")
-            //     .unwrap();
-            // canvas
-            //     .style()
-            //     .set_property("height", "100% !important")
-            //     .unwrap();
-            //
             spawn_local(async move {
                 let model = Model {};
                 run_app(model).await;
             });
         }
+    });
 
-        let canvas: HtmlCanvasElement = web_sys::window()
-            .unwrap()
-            .document()
-            .unwrap()
-            .query_selector("canvas")
-            .unwrap()
-            .unwrap()
-            .unchecked_into();
-
-        canvas.set_width(990);
-        canvas.set_height(560);
+    use_resize_observer(canvas_ref, move |entries, _observer| {
+        let rect = entries[0].content_rect();
+        println!("rect: {:?}", rect);
     });
 
     view! {
-        <div style="width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">
-            <canvas
-                node_ref=canvas_ref
-                id="nannou"
-                style="width: 990px !important; height: 560px !important;"
-            />
-        </div>
+        <canvas
+            node_ref=canvas_ref
+            // id="nannou"
+            style="width: 990px !important; height: 560px !important;"
+        />
     }
+    // view! {
+    //     <div style="width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">
+    //         <div style="display: flex; flex-direction: column; align-items: center;">
+    //             <h1 style="color: white; margin-bottom: 10px;">HALLO</h1>
+    //             <canvas
+    //                 node_ref=canvas_ref
+    //                 id="nannou"
+    //                 style="width: 990px !important; height: 560px !important;"
+    //             />
+    //         </div>
+    //     </div>
+    // }
 }
 
 fn main() {
