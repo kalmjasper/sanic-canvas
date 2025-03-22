@@ -4,31 +4,23 @@
 use leptos::task::spawn_local;
 use leptos::*;
 use leptos::{html::Canvas, prelude::*};
-use leptos_use::{use_mutation_observer_with_options, UseMutationObserverOptions};
+use leptos_router::{components::*, path};
 use sketch::run_app;
-use web_sys::console;
 
 mod sketch;
 
 #[component]
+fn HelloWorld() -> impl IntoView {
+    view! {
+        <div style="background-color: white; color: black;">
+            <h1>Hello, World!</h1>
+        </div>
+    }
+}
+
+#[component]
 fn App() -> impl IntoView {
     let canvas_ref: NodeRef<Canvas> = NodeRef::new();
-
-    // let target_style = "width: 100%; height: 100%; outline: none";
-
-    // use_mutation_observer_with_options(
-    //     canvas_ref,
-    //     move |_entries, _observer| {
-    //         if let Some(canvas) = canvas_ref.get() {
-    //             if let Some(attr) = canvas.get_attribute("style") {
-    //                 if attr != target_style {
-    //                     canvas.set_attribute("style", &target_style).unwrap();
-    //                 }
-    //             }
-    //         }
-    //     },
-    //     UseMutationObserverOptions::default().attributes(true),
-    // );
 
     Effect::new(move |_| {
         if let Some(canvas) = canvas_ref.get() {
@@ -48,20 +40,18 @@ fn App() -> impl IntoView {
             />
         </div>
     }
-    // view! {
-    //     <div style="width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">
-    //         <div style="display: flex; flex-direction: column; align-items: center;">
-    //             <h1 style="color: white; margin-bottom: 10px;">HALLO</h1>
-    //             <canvas
-    //                 node_ref=canvas_ref
-    //                 id="nannou"
-    //                 style="width: 990px !important; height: 560px !important;"
-    //             />
-    //         </div>
-    //     </div>
-    // }
 }
 
 fn main() {
-    leptos::mount::mount_to_body(|| view! { <App /> });
+    // Initialize Leptos
+    // leptos::mount::mount_to_body(|| {
+    //     view! { <Router><Routes fallback=|| "Not found.">
+    //         <Route path=path!("/ooo") view=|| view! { <App/> } />
+    //         <Route path=path!("/hello") view=|| view! { <HelloWorld/> } />
+    //     </Routes></Router> }
+    // });
+
+    leptos::mount::mount_to_body(|| {
+        view! { <App/> }
+    });
 }

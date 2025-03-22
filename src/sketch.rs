@@ -8,8 +8,28 @@
 
 use web_sys::console;
 
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{asset::AssetMetaCheck, prelude::*, window::PrimaryWindow};
 use noise::NoiseFn;
+
+// Add these imports at the top
+use bevy::{
+    render::render_resource::{AsBindGroup, ShaderRef},
+    sprite::{Material2d, Material2dPlugin},
+};
+
+// Add this struct after your other struct definitions
+#[derive(Asset, TypePath, AsBindGroup, Clone)]
+pub struct SquareMaterial {
+    #[uniform(0)]
+    color: LinearRgba,
+}
+
+// Implement Material2d for your custom material
+impl Material2d for SquareMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shaders/square.wgsl".into()
+    }
+}
 
 fn cleanup_visuals(mut commands: Commands, query: Query<Entity, With<Visual>>) {
     for entity in query.iter() {
@@ -57,9 +77,8 @@ fn setup(mut commands: Commands) {
 }
 
 fn update_points(
-    mut points: Query<(&mut Point, &mut Transform, &MeshMaterial2d<ColorMaterial>)>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    // mut points: Query<(&mut Point, &mut MeshMaterial2d<ColorMaterial>)>,
+    mut points: Query<(&mut Point, &mut Transform, &MeshMaterial2d<SquareMaterial>)>,
+    mut materials: ResMut<Assets<SquareMaterial>>,
     time: Res<Time>,
 ) {
     for (mut point, mut transform, material) in points.iter_mut() {
@@ -81,7 +100,7 @@ fn update_points(
         );
 
         if let Some(material) = materials.get_mut(material.id()) {
-            material.color = Color::srgb(1.0, 1.0 - point.z, 1.0 - point.z);
+            material.color = LinearRgba::new(1.0, 1.0 - point.z, 1.0 - point.z, 1.0);
         }
     }
 }
@@ -99,7 +118,7 @@ fn update_points(
 fn make_grid(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut materials: ResMut<Assets<SquareMaterial>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     let num_squares_horizontal = 40;
@@ -140,7 +159,9 @@ fn make_grid(
                     z: 0.0,
                 },
                 Mesh2d(meshes.add(Rectangle::new(square_size, square_size))),
-                MeshMaterial2d(materials.add(ColorMaterial::from(Color::WHITE))),
+                MeshMaterial2d(materials.add(SquareMaterial {
+                    color: LinearRgba::WHITE,
+                })),
                 Transform::from_xyz(pos_x, pos_y, 0.0).with_scale(Vec3::new(0.0, 0.0, 1.0)),
                 Visual,
             ));
@@ -150,21 +171,28 @@ fn make_grid(
 
 pub async fn run_app() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins.set(WindowPlugin {
-        primary_window: Some(Window {
-            canvas: Some("#sanic".into()),
-            fit_canvas_to_parent: true,
-            resize_constraints: WindowResizeConstraints {
-                min_width: 0.0,
-                min_height: 0.0,
-                max_width: f32::INFINITY,
-                max_height: f32::INFINITY,
-            },
-
-            ..default()
-        }),
-        ..default()
-    }))
+    app.add_plugins((
+        DefaultPlugins
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    canvas: Some("#sanic".into()),
+                    fit_canvas_to_parent: true,
+                    resize_constraints: WindowResizeConstraints {
+                        min_width: 0.0,
+                        min_height: 0.0,
+                        max_width: f32::INFINITY,
+                        max_height: f32::INFINITY,
+                    },
+                    ..default()
+                }),
+                ..default()
+            })
+            .set(AssetPlugin {
+                meta_check: AssetMetaCheck::Never,
+                ..default()
+            }),
+        Material2dPlugin::<SquareMaterial>::default(),
+    ))
     .insert_resource(ClearColor(Color::BLACK))
     .insert_resource(WindowSize::default())
     .add_systems(Startup, setup)
