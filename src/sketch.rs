@@ -8,7 +8,8 @@
 
 use web_sys::console;
 
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle, window::PrimaryWindow};
+use bevy::{prelude::*, window::PrimaryWindow};
+use noise::NoiseFn;
 
 fn cleanup_visuals(mut commands: Commands, query: Query<Entity, With<Visual>>) {
     for entity in query.iter() {
@@ -45,6 +46,7 @@ fn detect_window_resize(
 struct Point {
     x: f32,
     y: f32,
+    z: f32,
 }
 
 #[derive(Component)]
@@ -53,6 +55,46 @@ struct Visual;
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2d::default());
 }
+
+fn update_points(
+    mut points: Query<(&mut Point, &mut Transform, &MeshMaterial2d<ColorMaterial>)>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    // mut points: Query<(&mut Point, &mut MeshMaterial2d<ColorMaterial>)>,
+    time: Res<Time>,
+) {
+    for (mut point, mut transform, material) in points.iter_mut() {
+        point.z = noise::OpenSimplex::new(1).get([
+            point.x as f64 / 350.0,
+            point.y as f64 / 350.0,
+            time.elapsed_secs() as f64 / 1.0,
+        ]) as f32
+            + 0.5; // Z between 0 and 1
+
+        let vec_to_center_len = (point.x.powi(2) + point.y.powi(2)).sqrt();
+
+        let scale = point.z * 0.5 + 0.5;
+        transform.scale = Vec3::new(scale, scale, 1.0);
+        transform.translation = Vec3::new(
+            point.x * (1.0 - (vec_to_center_len / 9000.0) * (1.0 - point.z)),
+            point.y * (1.0 - (vec_to_center_len / 9000.0) * (1.0 - point.z)),
+            0.0,
+        );
+
+        if let Some(material) = materials.get_mut(material.id()) {
+            material.color = Color::srgb(1.0, 1.0 - point.z, 1.0 - point.z);
+        }
+    }
+}
+
+// fn update_points(mut points: Query<&mut Point>, time: Res<Time>) {
+//     for mut point in points.iter_mut() {
+//         point.z = noise::OpenSimplex::new(1).get([
+//             point.x as f64,
+//             point.y as f64,
+//             time.elapsed_secs() as f64 * 0.015,
+//         ]) as f32;
+//     }
+// }
 
 fn make_grid(
     mut commands: Commands,
@@ -92,10 +134,14 @@ fn make_grid(
                 - height / 2.0;
 
             commands.spawn((
-                Point { x: pos_x, y: pos_y },
+                Point {
+                    x: pos_x,
+                    y: pos_y,
+                    z: 0.0,
+                },
                 Mesh2d(meshes.add(Rectangle::new(square_size, square_size))),
                 MeshMaterial2d(materials.add(ColorMaterial::from(Color::WHITE))),
-                Transform::from_xyz(pos_x, pos_y, 0.0),
+                Transform::from_xyz(pos_x, pos_y, 0.0).with_scale(Vec3::new(0.0, 0.0, 1.0)),
                 Visual,
             ));
         }
@@ -125,7 +171,8 @@ pub async fn run_app() {
     .add_systems(
         Update,
         (update_window_size, (cleanup_visuals, make_grid).chain()).run_if(detect_window_resize),
-    );
+    )
+    .add_systems(Update, update_points);
 
     app.run();
 }

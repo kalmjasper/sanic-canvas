@@ -14,7 +14,7 @@ mod sketch;
 fn App() -> impl IntoView {
     let canvas_ref: NodeRef<Canvas> = NodeRef::new();
 
-    let target_style = "width: 100%; height: 100%; outline: none";
+    // let target_style = "width: 100%; height: 100%; outline: none";
 
     // use_mutation_observer_with_options(
     //     canvas_ref,
