@@ -33,61 +33,50 @@ impl Particle {
 }
 
 struct Model {
-    particles: Vec<Particle>,
+    points: Vec<Vector3>,
+    noise: nannou::noise::OpenSimplex,
 }
 
 fn model(app: &App) -> Model {
-    let r = app.window_rect().right() as f32;
-    let l = app.window_rect().left() as f32;
-
-    let w = l - r;
-    let t = app.window_rect().top() as f32;
-    let b = app.window_rect().bottom() as f32;
-
-    let h = t - b;
-
     let mut p = vec![];
-    for _i in 0..200 {
-        let x = random_f32() * w + r;
-        let y = random_f32() * h + b;
-        p.push(Particle::new(x, y));
+    for x in -20..20 {
+        for y in -20..20 {
+            p.push(vec3(2.0 * x as f32, 2.0 * y as f32, 0.0));
+        }
     }
-
-    Model { particles: p }
+    let noise = nannou::noise::OpenSimplex::new();
+    Model { points: p, noise }
 }
 
 fn update(app: &App, model: &mut Model) {
-    let noise = nannou::noise::Perlin::new();
-    let t = app.elapsed_frames() as f64 / 10.;
-    for i in 0..model.particles.len() {
-        let p = &mut model.particles[i];
-        let x = noise.get([
-            p.pos.x as f64 / 128.,
-            p.pos.y as f64 / 137.,
-            t + i as f64 / 1000.,
-        ]);
-        let y = noise.get([
-            -p.pos.y as f64 / 128.,
-            p.pos.x as f64 / 137.,
-            t + i as f64 / 1000.,
-        ]);
+    let t = (app.elapsed_frames() as f32) * 0.015;
+    let mut pn = vec![];
 
-        let a = vec2(x as f32, y as f32);
-        p.update(a);
+    for p in &model.points {
+        let r = model
+            .noise
+            .get([p.x as f64 / 10.0, p.y as f64 / 10.0, t as f64]);
+        pn.push(vec3(p.x, p.y, r as f32));
     }
+    model.points = pn;
 }
 
 fn view(app: &App, model: &Model) {
     let draw = app.draw();
-    let t = (app.elapsed_frames() as f32) * 0.02;
-    let w = (t * 0.832).cos();
-    for p in &model.particles {
-        draw.ellipse()
-            .xy(p.pos)
-            .w_h(2.0, 2.0)
-            .color(Color::hsla(0.1, 1. + w, 5., 0.01));
+    draw.background().color(BLACK);
+
+    for point in &model.points {
+        let d = vec2(point.x, point.y).normalize();
+        let r = point.z * 15.0 + 12.0;
+        let p = vec2(point.x, point.y) * 15.0 + d * point.z * 15.0;
+        draw.rect()
+            .x_y(p.x, p.y)
+            .w_h(r, r)
+            .color(DARK_GRAY)
+            .stroke(Color::hsl(1.0 - point.z as f32 / 2.0 + 0.5, 1.0, 0.5))
+            .stroke_weight(2.0 - point.z);
     }
-    // draw.to_frame(app, &frame).unwrap();
+    // draw.to_frame(app).unwrap();
 }
 
 pub async fn run_app() {
