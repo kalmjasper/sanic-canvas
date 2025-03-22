@@ -60,7 +60,7 @@ fn make_grid(
     mut materials: ResMut<Assets<ColorMaterial>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    let num_squares_horizontal = 20;
+    let num_squares_horizontal = 40;
     let white_space_relative_to_square = 0.3;
 
     let window = window_query.single();
@@ -72,8 +72,7 @@ fn make_grid(
         width / (num_squares_horizontal as f32 + white_space_relative_to_square);
 
     let squares_vertical = (height / square_size_with_whitespace) as i32;
-
-    console::log_1(&"setup".into());
+    let side_spacing_y = height % square_size_with_whitespace;
 
     console::log_1(&format!("Window size: {}x{}", width, height).into());
 
@@ -88,7 +87,9 @@ fn make_grid(
                 + (x as f32 * square_size_with_whitespace)
                 - width / 2.0;
 
-            let pos_y = 0.0;
+            let pos_y = (side_spacing_y + square_size_with_whitespace) / 2.0
+                + (y as f32 * square_size_with_whitespace)
+                - height / 2.0;
 
             commands.spawn((
                 Point { x: pos_x, y: pos_y },
@@ -107,6 +108,12 @@ pub async fn run_app() {
         primary_window: Some(Window {
             canvas: Some("#sanic".into()),
             fit_canvas_to_parent: true,
+            resize_constraints: WindowResizeConstraints {
+                min_width: 0.0,
+                min_height: 0.0,
+                max_width: f32::INFINITY,
+                max_height: f32::INFINITY,
+            },
 
             ..default()
         }),
