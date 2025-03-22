@@ -16,23 +16,23 @@ fn App() -> impl IntoView {
 
     let target_style = "width: 100%; height: 100%; outline: none";
 
-    use_mutation_observer_with_options(
-        canvas_ref,
-        move |_entries, _observer| {
-            if let Some(canvas) = canvas_ref.get() {
-                if let Some(attr) = canvas.get_attribute("style") {
-                    if attr != target_style {
-                        canvas.set_attribute("style", &target_style).unwrap();
-                    }
-                }
-            }
-        },
-        UseMutationObserverOptions::default().attributes(true),
-    );
+    // use_mutation_observer_with_options(
+    //     canvas_ref,
+    //     move |_entries, _observer| {
+    //         if let Some(canvas) = canvas_ref.get() {
+    //             if let Some(attr) = canvas.get_attribute("style") {
+    //                 if attr != target_style {
+    //                     canvas.set_attribute("style", &target_style).unwrap();
+    //                 }
+    //             }
+    //         }
+    //     },
+    //     UseMutationObserverOptions::default().attributes(true),
+    // );
 
     Effect::new(move |_| {
         if let Some(canvas) = canvas_ref.get() {
-            canvas.set_id("nannou");
+            canvas.set_id("sanic");
 
             spawn_local(async move {
                 run_app().await;
@@ -41,11 +41,12 @@ fn App() -> impl IntoView {
     });
 
     view! {
-        <canvas
-            node_ref=canvas_ref
-            // id="nannou"
-            style="width: 990px !important; height: 560px !important;"
-        />
+        <div style="width: 100%; height: 100%;">
+            <canvas
+                style="outline: none;"
+                node_ref=canvas_ref
+            />
+        </div>
     }
     // view! {
     //     <div style="width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">
