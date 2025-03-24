@@ -1,0 +1,8 @@
+[package]
+name = "shared"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+bevy = { workspace = true }
+noise = { workspace = true }

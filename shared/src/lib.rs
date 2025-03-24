@@ -1,30 +1,29 @@
-// Derived from the example in nature_of_code and noise visualization
-
-// The Nature of Code
-// Daniel Shiffman
-// http://natureofcode.com
-//
-// Example 8-3: Simple Recursion
-
-use web_sys::console;
-
-use bevy::{asset::AssetMetaCheck, prelude::*, window::PrimaryWindow};
+use bevy::{
+    asset::AssetMetaCheck, prelude::*, render::render_resource::ShaderType, window::PrimaryWindow,
+};
 use noise::NoiseFn;
 
-// Add these imports at the top
 use bevy::{
     render::render_resource::{AsBindGroup, ShaderRef},
     sprite::{Material2d, Material2dPlugin},
 };
 
-// Add this struct after your other struct definitions
 #[derive(Asset, TypePath, AsBindGroup, Clone)]
 pub struct SquareMaterial {
     #[uniform(0)]
+    color: SafeColor,
+    #[uniform(1)]
+    outline_color: SafeColor,
+    #[uniform(2)]
+    outline_thickness: f32,
+}
+
+#[derive(Clone, Copy, ShaderType, TypePath, AsBindGroup)]
+#[repr(C, align(16))]
+pub struct SafeColor {
     color: LinearRgba,
 }
 
-// Implement Material2d for your custom material
 impl Material2d for SquareMaterial {
     fn fragment_shader() -> ShaderRef {
         "shaders/square.wgsl".into()
@@ -43,13 +42,11 @@ struct WindowSize {
     height: f32,
 }
 
-// Add this system to detect window resizes
 fn update_window_size(
     mut window_size: ResMut<WindowSize>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     let window = window_query.single();
-
     window_size.width = window.width();
     window_size.height = window.height();
 }
@@ -87,7 +84,7 @@ fn update_points(
             point.y as f64 / 350.0,
             time.elapsed_secs() as f64 / 1.0,
         ]) as f32
-            + 0.5; // Z between 0 and 1
+            + 0.5;
 
         let vec_to_center_len = (point.x.powi(2) + point.y.powi(2)).sqrt();
 
@@ -100,20 +97,12 @@ fn update_points(
         );
 
         if let Some(material) = materials.get_mut(material.id()) {
-            material.color = LinearRgba::new(1.0, 1.0 - point.z, 1.0 - point.z, 1.0);
+            material.color = SafeColor {
+                color: LinearRgba::new(1.0, 1.0 - point.z, 1.0 - point.z, 1.0),
+            };
         }
     }
 }
-
-// fn update_points(mut points: Query<&mut Point>, time: Res<Time>) {
-//     for mut point in points.iter_mut() {
-//         point.z = noise::OpenSimplex::new(1).get([
-//             point.x as f64,
-//             point.y as f64,
-//             time.elapsed_secs() as f64 * 0.015,
-//         ]) as f32;
-//     }
-// }
 
 fn make_grid(
     mut commands: Commands,
@@ -135,15 +124,11 @@ fn make_grid(
     let squares_vertical = (height / square_size_with_whitespace) as i32;
     let side_spacing_y = height % square_size_with_whitespace;
 
-    console::log_1(&format!("Window size: {}x{}", width, height).into());
-
     for x in 0..num_squares_horizontal {
         for y in 0..squares_vertical {
-            // Calculate position with proper spacing
             let spacing = square_size_with_whitespace * white_space_relative_to_square;
             let square_size = square_size_with_whitespace - spacing;
 
-            // Center the grid in the window
             let pos_x = (spacing + square_size_with_whitespace) / 2.0
                 + (x as f32 * square_size_with_whitespace)
                 - width / 2.0;
@@ -160,7 +145,13 @@ fn make_grid(
                 },
                 Mesh2d(meshes.add(Rectangle::new(square_size, square_size))),
                 MeshMaterial2d(materials.add(SquareMaterial {
-                    color: LinearRgba::WHITE,
+                    color: SafeColor {
+                        color: LinearRgba::WHITE,
+                    },
+                    outline_color: SafeColor {
+                        color: LinearRgba::BLACK,
+                    },
+                    outline_thickness: 0.1,
                 })),
                 Transform::from_xyz(pos_x, pos_y, 0.0).with_scale(Vec3::new(0.0, 0.0, 1.0)),
                 Visual,
@@ -169,13 +160,13 @@ fn make_grid(
     }
 }
 
-pub async fn run_app() {
+pub async fn run_app(canvas_id: Option<&str>) {
     let mut app = App::new();
     app.add_plugins((
         DefaultPlugins
             .set(WindowPlugin {
                 primary_window: Some(Window {
-                    canvas: Some("#sanic".into()),
+                    canvas: canvas_id.map(|id| id.to_string()),
                     fit_canvas_to_parent: true,
                     resize_constraints: WindowResizeConstraints {
                         min_width: 0.0,

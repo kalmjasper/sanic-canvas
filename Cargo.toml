@@ -1,26 +1,6 @@
-[package]
-name = "nannou-app"
-version = "0.0.1"
-edition = "2021"
+[workspace]
+members = ["bevy_app", "web_app", "shared"]
 
-[[bin]]
-name = "nannou_web_compat"
-path = "src/main.rs"
-
-[dependencies]
-wasm-bindgen = "0.2.83"
-wasm-bindgen-futures = "0.4.32"
-async-std = { version = "1.10.0", features = ["unstable"] }
-bevy = "0.15.3"
-leptos = { version = "0.7.8", features = ["csr"] }
-leptos_router = "0.7.8"
-leptos-use = "0.15.7"
+[workspace.dependencies]
+bevy = { version = "0.15.3" }
 noise = "0.9.0"
-
-[dependencies.web-sys]
-version = "0.3.22"
-features = ["console"]
-
-
-[target."cfg(debug_assertions)".dependencies]
-console_error_panic_hook = "0.1.5"
