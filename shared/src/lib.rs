@@ -1,6 +1,4 @@
-use bevy::{
-    asset::AssetMetaCheck, prelude::*, render::render_resource::ShaderType, window::PrimaryWindow,
-};
+use bevy::{asset::AssetMetaCheck, prelude::*, window::PrimaryWindow};
 use noise::NoiseFn;
 
 use bevy::{
@@ -98,7 +96,12 @@ fn update_points(
         );
 
         if let Some(material) = materials.get_mut(material.id()) {
-            material.color = LinearRgba::new(1.0, 1.0 - point.z, 1.0 - point.z, 1.0);
+            material.color = Color::hsl(
+                (1.0 - point.z) * 360.0, // hue
+                1.0,                     // saturation
+                0.5,                     // lightness
+            )
+            .into();
         }
     }
 }
@@ -123,18 +126,20 @@ fn make_grid(
     let squares_vertical = (height / square_size_with_whitespace) as i32;
     let side_spacing_y = height % square_size_with_whitespace;
 
-    for x in 0..num_squares_horizontal {
-        for y in 0..squares_vertical {
+    for x in 0..(num_squares_horizontal + 10) {
+        for y in 0..(squares_vertical + 10) {
             let spacing = square_size_with_whitespace * white_space_relative_to_square;
             let square_size = square_size_with_whitespace - spacing;
 
             let pos_x = (spacing + square_size_with_whitespace) / 2.0
                 + (x as f32 * square_size_with_whitespace)
-                - width / 2.0;
+                - width / 2.0
+                - square_size_with_whitespace * 5.0;
 
             let pos_y = (side_spacing_y + square_size_with_whitespace) / 2.0
                 + (y as f32 * square_size_with_whitespace)
-                - height / 2.0;
+                - height / 2.0
+                - square_size_with_whitespace * 5.0;
 
             commands.spawn((
                 Point {
