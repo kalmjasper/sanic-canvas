@@ -1,16 +1,9 @@
 #import bevy_sprite::mesh2d_vertex_output::VertexOutput
 
-struct SafeColor {
-    @align(16)
-    color: vec4<f32>,
-}
-
 @group(2) @binding(0)
-var<uniform> color: SafeColor;
+var<uniform> color: vec4<f32>;
 @group(2) @binding(1)
-var<uniform> outline_color: SafeColor;
-@group(2) @binding(2)
-var<uniform> outline_thickness: f32;
+var<uniform> outline_color: vec4<f32>;
 
 @fragment
 fn fragment(mesh: VertexOutput) -> @location(0) vec4<f32> {
@@ -24,9 +17,9 @@ fn fragment(mesh: VertexOutput) -> @location(0) vec4<f32> {
         min(mesh.uv.y, 1.0 - mesh.uv.y)
     );
     // If we're within the outline thickness, return outline color
-    if (distance_from_edge < outline_thickness) {
-        return outline_color.color;
+    if (distance_from_edge < 0.2) {
+        return outline_color;
     }
 
-    return color.color;
+    return color;
 }

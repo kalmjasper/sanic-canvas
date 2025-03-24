@@ -11,18 +11,19 @@ use bevy::{
 #[derive(Asset, TypePath, AsBindGroup, Clone)]
 pub struct SquareMaterial {
     #[uniform(0)]
-    color: SafeColor,
+    color: LinearRgba,
     #[uniform(1)]
-    outline_color: SafeColor,
-    #[uniform(2)]
-    outline_thickness: f32,
+    outline_color: LinearRgba,
 }
 
-#[derive(Clone, Copy, ShaderType, TypePath, AsBindGroup)]
-#[repr(C, align(16))]
-pub struct SafeColor {
-    color: LinearRgba,
-}
+// #[derive(Clone, Copy, ShaderType, TypePath, AsBindGroup)]
+// #[repr(C)]
+// pub struct Outline {
+//     thickness1: f32,
+//     thickness2: f32,
+//     thickness3: f32,
+//     thickness4: f32,
+// }
 
 impl Material2d for SquareMaterial {
     fn fragment_shader() -> ShaderRef {
@@ -97,9 +98,7 @@ fn update_points(
         );
 
         if let Some(material) = materials.get_mut(material.id()) {
-            material.color = SafeColor {
-                color: LinearRgba::new(1.0, 1.0 - point.z, 1.0 - point.z, 1.0),
-            };
+            material.color = LinearRgba::new(1.0, 1.0 - point.z, 1.0 - point.z, 1.0);
         }
     }
 }
@@ -145,13 +144,8 @@ fn make_grid(
                 },
                 Mesh2d(meshes.add(Rectangle::new(square_size, square_size))),
                 MeshMaterial2d(materials.add(SquareMaterial {
-                    color: SafeColor {
-                        color: LinearRgba::WHITE,
-                    },
-                    outline_color: SafeColor {
-                        color: LinearRgba::BLACK,
-                    },
-                    outline_thickness: 0.1,
+                    color: LinearRgba::WHITE,
+                    outline_color: LinearRgba::BLACK,
                 })),
                 Transform::from_xyz(pos_x, pos_y, 0.0).with_scale(Vec3::new(0.0, 0.0, 1.0)),
                 Visual,
