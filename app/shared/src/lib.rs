@@ -90,8 +90,8 @@ fn update_points(
         let scale = point.z * 0.5 + 0.5;
         transform.scale = Vec3::new(scale, scale, 1.0);
         transform.translation = Vec3::new(
-            point.x * (1.0 - (vec_to_center_len / 9000.0) * (1.0 - point.z)),
-            point.y * (1.0 - (vec_to_center_len / 9000.0) * (1.0 - point.z)),
+            point.x * (1.0 - (vec_to_center_len / 6000.0) * (1.0 - point.z)),
+            point.y * (1.0 - (vec_to_center_len / 6000.0) * (1.0 - point.z)),
             0.0,
         );
 
