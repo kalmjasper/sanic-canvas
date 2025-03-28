@@ -68,6 +68,21 @@
 
   security.sudo.wheelNeedsPassword = false;
 
+  services.nginx = {
+    enable = true;
+    # Basic nginx configuration
+    virtualHosts."monumental.build" = {
+      # forceSSL = true;
+      # useACMEHost = "monumental.build";
+      root = "${pkgs.web-app}";
+      listen = [{
+        port = 80;
+        ssl = false;
+        addr = "0.0.0.0";
+      }];
+    };
+  };
+
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
   #

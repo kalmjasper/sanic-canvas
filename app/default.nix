@@ -1,21 +1,36 @@
 { pkgs }:
 
 let
-  # Use pkgs.rustPlatform for Rust-specific build tools
-  inherit (pkgs) rustPlatform;
-in pkgs.stdenv.mkDerivation {
-  name = "web-app";
-  src = ./.; # Use the current directory as source
+  # Import the rust-overlay
+  rustOverlay = import (builtins.fetchTarball {
+    url = "https://github.com/oxalica/rust-overlay/archive/master.tar.gz";
+    sha256 = "sha256:1ahj99gpajmd1s2zd2bq03yzbhb38pbln5nnv0k3r2b69zwjskw0";
+  });
 
-  # Add necessary build dependencies
-  nativeBuildInputs = with pkgs; [
-    trunk
-    rustc
-    cargo
-    wasm-bindgen-cli
-    nodePackages.npm
-    binaryen # For wasm optimization
+  # Apply the overlay to pkgs
+  pkgsWithRustOverlay = pkgs.extend rustOverlay;
+
+  # Select the specific Rust version you want
+  rust-1-85-0 = pkgsWithRustOverlay.rust-bin.stable."1.85.0".default.override {
+    targets = [ "wasm32-unknown-unknown" ];
+  };
+
+in pkgsWithRustOverlay.stdenv.mkDerivation {
+  name = "web-app";
+  src = ./.;
+
+  # Use the specific Rust version
+  nativeBuildInputs = [
+    git
+    rust-1-85-0
+    pkgsWithRustOverlay.trunk
+    pkgsWithRustOverlay.wasm-bindgen-cli
+    pkgsWithRustOverlay.nodePackages.npm
+    pkgsWithRustOverlay.binaryen
+    pkgsWithRustOverlay.cacert
   ];
+
+  __noChroot = true;
 
   # Build phase
   buildPhase = ''
@@ -23,6 +38,7 @@ in pkgs.stdenv.mkDerivation {
     export HOME=$TMPDIR
 
     # Build the release version
+    cd web_app
     trunk build --release
   '';
 

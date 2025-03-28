@@ -27,7 +27,16 @@
         nixosConfigurations = {
           scan-server = nixpkgs.lib.nixosSystem {
             specialArgs = { inherit inputs self; };
-            modules = [ ./nixos/configuration.nix ];
+            modules = [
+              ./nixos/configuration.nix
+              ({ pkgs, self, ... }: {
+                nixpkgs.overlays = [
+                  (final: prev: {
+                    inherit (self.packages.${final.system}) web-app;
+                  })
+                ];
+              })
+            ];
           };
         };
 
